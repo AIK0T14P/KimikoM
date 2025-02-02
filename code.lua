@@ -13,7 +13,7 @@ local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local Camera = workspace.CurrentCamera
 
--- Textos en español
+-- Idioma (solo español en esta versión)
 local Texts = {
     categories = {
         Molestar = "Molestar",
@@ -25,25 +25,34 @@ local Texts = {
     features = {
         SpamChat = "Spam de Chat",
         FollowPlayer = "Seguir Jugador Aleatorio",
-        TeleportToPlayer = "Teletransportarse a Jugador",
-        SpinPlayers = "Girar Jugadores",
-        JumpScare = "Susto Repentino",
-        ForceDance = "Forzar Baile",
-        InvisibleTroll = "Troll Invisible",
-        SpamBubbles = "Spam de Burbujas",
-        FakeVIP = "VIP Falso",
-        CopyOutfit = "Copiar Atuendo",
-        MimicPlayer = "Imitar Jugador",
-        FakeExplode = "Explosión Falsa",
-        LaunchPlayers = "Lanzar Jugadores",
-        GlitchCharacter = "Personaje Glitcheado",
-        RainbowCharacter = "Personaje Arcoíris",
-        GiantCharacter = "Personaje Gigante",
-        TinyCharacter = "Personaje Diminuto",
+        DanceSpam = "Spam de Baile",
+        JumpSpam = "Spam de Saltos",
+        SpinAround = "Girar Alrededor",
+        RandomTeleport = "Teletransporte Aleatorio",
+        LoudSounds = "Sonidos Fuertes",
         SpamEquipTools = "Spam de Equipar Herramientas",
+        RainbowCharacter = "Personaje Arcoíris",
+        SpamRemotes = "Spam de Remotos",
+        TeleportToPlayer = "Teletransportarse a Jugador",
+        FakeVIP = "VIP Falso",
+        InvisibleTroll = "Troll Invisible",
+        FakeLag = "Lag Falso",
+        SpamBubbles = "Spam de Burbujas de Chat",
+        GlitchCharacter = "Personaje Glitcheado",
+        FakeKill = "Matar a Todos (Falso)",
+        SpamParticles = "Spam de Partículas",
+        MimicPlayer = "Imitar Jugador",
         ServerLagger = "Lagear Servidor",
-        FakeAdmin = "Admin Falso"
-    }
+        SuperSpeed = "Super Velocidad",
+        Noclip = "Atravesar Paredes",
+        Fly = "Volar",
+        ChangeSize = "Cambiar Tamaño",
+        EarRape = "Sonidos Molestos",
+        DiscoMode = "Modo Disco",
+        FakeAdmin = "Admin Falso",
+        CrashServer = "Intentar Crashear Servidor"
+    },
+    loading = "Cargando..."
 }
 
 -- GUI Principal
@@ -197,62 +206,7 @@ local function CreateToggle(name, section, callback)
     end)
 end
 
--- Función para crear un menú desplegable para seleccionar jugadores
-local function CreatePlayerDropdown(name, section, callback)
-    local DropdownFrame = Instance.new("Frame")
-    DropdownFrame.Size = UDim2.new(1, 0, 0, 30)
-    DropdownFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    DropdownFrame.Parent = section
-    
-    local DropdownButton = Instance.new("TextButton")
-    DropdownButton.Size = UDim2.new(1, -10, 1, -5)
-    DropdownButton.Position = UDim2.new(0, 5, 0, 2.5)
-    DropdownButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-    DropdownButton.Text = Texts.features[name]
-    DropdownButton.TextColor3 = Color3.new(1, 1, 1)
-    DropdownButton.Parent = DropdownFrame
-    
-    local DropdownList = Instance.new("ScrollingFrame")
-    DropdownList.Size = UDim2.new(1, 0, 0, 100)
-    DropdownList.Position = UDim2.new(0, 0, 1, 5)
-    DropdownList.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    DropdownList.Visible = false
-    DropdownList.Parent = DropdownFrame
-    
-    local UIListLayout = Instance.new("UIListLayout")
-    UIListLayout.Parent = DropdownList
-    
-    local function UpdateDropdown()
-        for i, v in pairs(DropdownList:GetChildren()) do
-            if v:IsA("TextButton") then
-                v:Destroy()
-            end
-        end
-        
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= LocalPlayer then
-                local PlayerButton = Instance.new("TextButton")
-                PlayerButton.Size = UDim2.new(1, 0, 0, 20)
-                PlayerButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-                PlayerButton.Text = player.Name
-                PlayerButton.TextColor3 = Color3.new(1, 1, 1)
-                PlayerButton.Parent = DropdownList
-                
-                PlayerButton.MouseButton1Click:Connect(function()
-                    callback(player)
-                    DropdownList.Visible = false
-                end)
-            end
-        end
-    end
-    
-    DropdownButton.MouseButton1Click:Connect(function()
-        UpdateDropdown()
-        DropdownList.Visible = not DropdownList.Visible
-    end)
-end
-
--- Características actualizadas
+-- Características por categoría
 local Features = {
     Molestar = {
         {name = "SpamChat", callback = function(enabled)
@@ -279,91 +233,124 @@ local Features = {
                 end)
             end
         end},
-        {name = "TeleportToPlayer", callback = function(player)
-            if player and player.Character then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame
-            end
-        end},
-        {name = "SpinPlayers", callback = function(enabled)
+        {name = "DanceSpam", callback = function(enabled)
             if enabled then
                 spawn(function()
                     while enabled do
-                        for _, player in pairs(game.Players:GetPlayers()) do
-                            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                                player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(10), 0)
-                            end
-                        end
+                        game:GetService("Players"):Chat("/e dance")
+                        wait(1)
+                        game:GetService("Players"):Chat("/e wave")
+                        wait(1)
+                    end
+                end)
+            end
+        end},
+        {name = "JumpSpam", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        LocalPlayer.Character.Humanoid.Jump = true
                         wait(0.1)
                     end
                 end)
             end
         end},
-        {name = "JumpScare", callback = function()
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    local jumpscareGui = Instance.new("ScreenGui")
-                    jumpscareGui.Name = "JumpscareGui"
-                    jumpscareGui.Parent = player.PlayerGui
-                    
-                    local jumpscareImage = Instance.new("ImageLabel")
-                    jumpscareImage.Size = UDim2.new(1, 0, 1, 0)
-                    jumpscareImage.Image = "rbxassetid://6864086702"
-                    jumpscareImage.Parent = jumpscareGui
-                    
-                    local sound = Instance.new("Sound")
-                    sound.SoundId = "rbxassetid://5567523008"
-                    sound.Volume = 1
-                    sound.Parent = jumpscareGui
-                    sound:Play()
-                    
-                    wait(2)
-                    jumpscareGui:Destroy()
-                end
-            end
-        end},
-        {name = "ForceDance", callback = function(enabled)
+    },
+    Movimiento = {
+        {name = "SpinAround", callback = function(enabled)
             if enabled then
                 spawn(function()
+                    local spinSpeed = 10
                     while enabled do
-                        for _, player in pairs(game.Players:GetPlayers()) do
-                            if player ~= LocalPlayer then
-                                game:GetService("Players"):Chat("/e dance")
-                            end
-                        end
-                        wait(5)
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
+                        RunService.Heartbeat:Wait()
                     end
                 end)
             end
         end},
-        {name = "InvisibleTroll", callback = function(enabled)
+        {name = "RandomTeleport", callback = function(enabled)
             if enabled then
-                LocalPlayer.Character.HumanoidRootPart.Transparency = 1
-                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                        part.Transparency = 1
+                spawn(function()
+                    while enabled do
+                        local randomX = math.random(-100, 100)
+                        local randomZ = math.random(-100, 100)
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(randomX, LocalPlayer.Character.HumanoidRootPart.Position.Y, randomZ))
+                        wait(3)
                     end
-                end
+                end)
+            end
+        end},
+        {name = "SuperSpeed", callback = function(enabled)
+            if enabled then
+                LocalPlayer.Character.Humanoid.WalkSpeed = 50
             else
-                LocalPlayer.Character.HumanoidRootPart.Transparency = 0
-                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                        part.Transparency = 0
+                LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            end
+        end},
+        {name = "Noclip", callback = function(enabled)
+            if enabled then
+                RunService:BindToRenderStep("Noclip", 0, function()
+                    if LocalPlayer.Character then
+                        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
                     end
+                end)
+            else
+                RunService:UnbindFromRenderStep("Noclip")
+            end
+        end},
+        {name = "Fly", callback = function(enabled)
+            if enabled then
+                local bp = Instance.new("BodyPosition", LocalPlayer.Character.HumanoidRootPart)
+                bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bp.P = 10000
+                bp.Position = LocalPlayer.Character.HumanoidRootPart.Position
+                
+                RunService:BindToRenderStep("Fly", 0, function()
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                        bp.Position = bp.Position + Vector3.new(0, 1, 0)
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+                        bp.Position = bp.Position - Vector3.new(0, 1, 0)
+                    end
+                end)
+            else
+                RunService:UnbindFromRenderStep("Fly")
+                if LocalPlayer.Character.HumanoidRootPart:FindFirstChild("BodyPosition") then
+                    LocalPlayer.Character.HumanoidRootPart.BodyPosition:Destroy()
                 end
             end
         end},
-        {name = "SpamBubbles", callback = function(enabled)
+    },
+    Apariencia = {
+        {name = "RainbowCharacter", callback = function(enabled)
             if enabled then
                 spawn(function()
                     while enabled do
-                        for _, player in pairs(game.Players:GetPlayers()) do
-                            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                                game:GetService("Chat"):Chat(player.Character.Head, "😂", Enum.ChatColor.Blue)
+                        for i = 0, 1, 0.01 do
+                            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    part.Color = Color3.fromHSV(i, 1, 1)
+                                end
                             end
+                            wait(0.1)
                         end
-                        wait(0.5)
                     end
                 end)
+            end
+        end},
+        {name = "ChangeSize", callback = function(enabled)
+            if enabled then
+                LocalPlayer.Character.Humanoid.BodyDepthScale.Value = 5
+                LocalPlayer.Character.Humanoid.BodyWidthScale.Value = 5
+                LocalPlayer.Character.Humanoid.BodyHeightScale.Value = 5
+            else
+                LocalPlayer.Character.Humanoid.BodyDepthScale.Value = 1
+                LocalPlayer.Character.Humanoid.BodyWidthScale.Value = 1
+                LocalPlayer.Character.Humanoid.BodyHeightScale.Value = 1
             end
         end},
         {name = "FakeVIP", callback = function(enabled)
@@ -389,70 +376,131 @@ local Features = {
                 end
             end
         end},
-        {name = "CopyOutfit", callback = function(player)
-            if player and player.Character then
-                for _, item in pairs(LocalPlayer.Character:GetChildren()) do
-                    if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") then
-                        item:Destroy()
-                    end
-                end
-                
-                for _, item in pairs(player.Character:GetChildren()) do
-                    if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") then
-                        local clone = item:Clone()
-                        clone.Parent = LocalPlayer.Character
-                    end
-                end
-            end
-        end},
-        {name = "MimicPlayer", callback = function(enabled)
+        {name = "InvisibleTroll", callback = function(enabled)
             if enabled then
-                spawn(function()
-                    while enabled do
-                        local players = game.Players:GetPlayers()
-                        local randomPlayer = players[math.random(1, #players)]
-                        if randomPlayer ~= LocalPlayer and randomPlayer.Character then
-                            LocalPlayer.Character.Humanoid:MoveTo(randomPlayer.Character.HumanoidRootPart.Position)
-                        end
-                        wait(2)
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        part.Transparency = 1
                     end
-                end)
-            end
-        end},
-        {name = "FakeExplode", callback = function()
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    local explosion = Instance.new("Explosion")
-                    explosion.Position = player.Character.HumanoidRootPart.Position
-                    explosion.BlastPressure = 0
-                    explosion.BlastRadius = 10
-                    explosion.Parent = workspace
                 end
-            end
-        end},
-        {name = "LaunchPlayers", callback = function()
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local bodyVelocity = Instance.new("BodyVelocity")
-                    bodyVelocity.Velocity = Vector3.new(0, 100, 0)
-                    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                    bodyVelocity.Parent = player.Character.HumanoidRootPart
-                    game.Debris:AddItem(bodyVelocity, 1)
+            else
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        part.Transparency = 0
+                    end
                 end
             end
         end},
     },
-    -- ... (otras categorías sin cambios)
+    Sonido = {
+        {name = "LoudSounds", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        for _, v in pairs(workspace:GetDescendants()) do
+                            if v:IsA("Sound") then
+                                v.Volume = 10
+                                v:Play()
+                            end
+                        end
+                        wait(5)
+                    end
+                end)
+            end
+        end},
+        {name = "EarRape", callback = function(enabled)
+            if enabled then
+                local sound = Instance.new("Sound", workspace)
+                sound.SoundId = "rbxassetid://142376088" -- Roblox death sound
+                sound.Volume = 10
+                sound.Looped = true
+                sound:Play()
+            else
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("Sound") and v.SoundId == "rbxassetid://142376088" then
+                        v:Destroy()
+                    end
+                end
+            end
+        end},
+        {name = "DiscoMode", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        Lighting.Ambient = Color3.new(math.random(), math.random(), math.random())
+                        wait(0.1)
+                    end
+                end)
+            else
+                Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+            end
+        end},
+    },
+    Servidor = {
+        {name = "SpamRemotes", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        for _, v in pairs(game:GetDescendants()) do
+                            if v:IsA("RemoteEvent") then
+                                v:FireServer()
+                            elseif v:IsA("BindableEvent") then
+                                v:Fire()
+                            end
+                        end
+                        wait(1)
+                    end
+                end)
+            end
+        end},
+        {name = "FakeAdmin", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(":kick all", "All")
+                        wait(5)
+                        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(":ban all", "All")
+                        wait(5)
+                    end
+                end)
+            end
+        end},
+        {name = "ServerLagger", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        for i = 1, 1000 do
+                            Instance.new("Part", workspace)
+                        end
+                        wait(0.1)
+                        for _, v in pairs(workspace:GetChildren()) do
+                            if v:IsA("Part") then
+                                v:Destroy()
+                            end
+                        end
+                        wait(0.1)
+                    end
+                end)
+            end
+        end},
+        {name = "CrashServer", callback = function(enabled)
+            if enabled then
+                spawn(function()
+                    while enabled do
+                        for i = 1, 1000000 do
+                            Instance.new("Part", workspace)
+                        end
+                    end
+                end)
+            end
+        end},
+    }
 }
 
--- Crear toggles y dropdowns para cada característica
+-- Crear toggles para cada característica
 for category, features in pairs(Features) do
     for _, feature in ipairs(features) do
-        if feature.name == "TeleportToPlayer" or feature.name == "CopyOutfit" then
-            CreatePlayerDropdown(feature.name, Sections[category], feature.callback)
-        else
-            CreateToggle(feature.name, Sections[category], feature.callback)
-        end
+        CreateToggle(feature.name, Sections[category], feature.callback)
     end
 end
 
