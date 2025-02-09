@@ -752,7 +752,6 @@ local AimbotTarget = nil
 local AimbotSensitivity = 0.5
 local AimbotSmoothing = 0.2
 local AimbotFOV = 400
-local AimbotActivationKey = Enum.KeyCode.E
 
 local function IsPlayerVisible(player)
     if player.Character and player.Character:FindFirstChild("Head") then
@@ -814,6 +813,7 @@ local function AimAt(target)
             local mousePos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
             local aimDelta = Vector2.new(targetPos.X - mousePos.X, targetPos.Y - mousePos.Y)
             aimDelta = aimDelta * AimbotSensitivity
+            mousemoverel(aimDelta.X * AimbotSmoothing, aimAimbotSensitivity
             mousemoverel(aimDelta.X * AimbotSmoothing, aimDelta.Y * AimbotSmoothing)
         end
     end
@@ -823,11 +823,9 @@ local function ToggleAimbot(enabled)
     AimbotEnabled = enabled
     if enabled then
         RunService:BindToRenderStep("Aimbot", 100, function()
-            if UserInputService:IsKeyDown(AimbotActivationKey) then
-                AimbotTarget = GetClosestPlayer()
-                if AimbotTarget and IsPlayerVisible(AimbotTarget) then
-                    AimAt(AimbotTarget)
-                end
+            AimbotTarget = GetClosestPlayer()
+            if AimbotTarget and IsPlayerVisible(AimbotTarget) then
+                AimAt(AimbotTarget)
             end
         end)
     else
@@ -1066,3 +1064,4 @@ ShowSection("Movement")
 
 -- Mensaje de confirmación
 print("Script mejorado cargado correctamente. Use el botón en la izquierda para mostrar/ocultar el menú.")
+
