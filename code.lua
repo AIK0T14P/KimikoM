@@ -749,7 +749,6 @@ end
 -- Aimbot function
 local AimbotEnabled = false
 local AimbotTarget = nil
-local AimbotCrosshair = nil
 
 local function GetClosestPlayer()
     local closestPlayer = nil
@@ -778,31 +777,14 @@ end
 local function ToggleAimbot(enabled)
     AimbotEnabled = enabled
     if enabled then
-        -- Create the crosshair
-        AimbotCrosshair = Drawing.new("Circle")
-        AimbotCrosshair.Visible = true
-        AimbotCrosshair.Radius = 5
-        AimbotCrosshair.Color = Color3.new(1, 0, 0)
-        AimbotCrosshair.Thickness = 1
-        AimbotCrosshair.Filled = false
-        AimbotCrosshair.Transparency = 1
-        AimbotCrosshair.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-
         RunService:BindToRenderStep("Aimbot", 100, function()
             AimbotTarget = GetClosestPlayer()
             if AimbotTarget then
                 AimAt(AimbotTarget)
             end
-            -- Update crosshair position
-            AimbotCrosshair.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
         end)
     else
         RunService:UnbindFromRenderStep("Aimbot")
-        -- Remove the crosshair
-        if AimbotCrosshair then
-            AimbotCrosshair:Remove()
-            AimbotCrosshair = nil
-        end
     end
 end
 
