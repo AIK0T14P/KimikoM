@@ -749,17 +749,37 @@ end
 -- Aimbot function
 local AimbotEnabled = false
 local AimbotTarget = nil
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2
+FOVCircle.NumSides = 100
+FOVCircle.Radius = 100
+FOVCircle.Filled = false
+FOVCircle.Visible = false
+FOVCircle.ZIndex = 999
+FOVCircle.Transparency = 1
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 
-local function GetClosestPlayer()
+local function UpdateFOVCircle()
+    if not FOVCircle then return end
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    FOVCircle.Radius = 100 -- Adjust this value to change the size of the FOV circle
+    FOVCircle.Visible = AimbotEnabled
+end
+
+local function GetClosestPlayerInFOV()
     local closestPlayer = nil
     local shortestDistance = math.huge
+    local mousePos = UserInputService:GetMouseLocation()
 
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance then
-                closestPlayer = player
-                shortestDistance = distance
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local screenPos, onScreen = Camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local distanceFromMouse = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                if distanceFromMouse <= FOVCircle.Radius and distanceFromMouse < shortestDistance then
+                    closestPlayer = player
+                    shortestDistance = distanceFromMouse
+                end
             end
         end
     end
@@ -767,18 +787,53 @@ local function GetClosestPlayer()
     return closestPlayer
 end
 
+local function IsPartVisible(part)
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("Head") then return false end
+
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    rayParams.FilterDescendantsInstances = {character}
+
+    local direction = (part.Position - character.Head.Position).Unit
+    local result = workspace:Raycast(character.Head.Position, direction * 1000, rayParams)
+
+    return result and result.Instance:IsDescendantOf(part.Parent)
+end
+
+local function GetVisibleBodyPart(character)
+    local bodyParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+    for _, partName in ipairs(bodyParts) do
+        local part = character:FindFirstChild(partName)
+        if part and IsPartVisible(part) then
+            return part
+        end
+    end
+    return nil
+end
+
 local function AimAt(target)
-    if target and target.Character and target.Character:FindFirstChild("Head") then
-        local targetPos = target.Character.Head.Position
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+    if target and target.Character then
+        local visiblePart = GetVisibleBodyPart(target.Character)
+        if visiblePart then
+            local targetPos = visiblePart.Position
+            local targetScreenPos, isOnScreen = Camera:WorldToScreenPoint(targetPos)
+            
+            if isOnScreen then
+                local mousePos = UserInputService:GetMouseLocation()
+                mousemoverel(targetScreenPos.X - mousePos.X, targetScreenPos.Y - mousePos.Y)
+            end
+        end
     end
 end
 
 local function ToggleAimbot(enabled)
     AimbotEnabled = enabled
+    FOVCircle.Visible = enabled
     if enabled then
         RunService:BindToRenderStep("Aimbot", 100, function()
-            AimbotTarget = GetClosestPlayer()
+            UpdateFOVCircle()
+            AimbotTarget = GetClosestPlayerInFOV()
             if AimbotTarget then
                 AimAt(AimbotTarget)
             end
@@ -1019,3 +1074,16 @@ ShowSection("Movement")
 
 -- Mensaje de confirmación
 print("Script mejorado cargado correctamente. Use el botón en la izquierda para mostrar/ocultar el menú.")
+
+-- Actualizar el círculo FOV cuando cambie el tamaño de la ventana
+UserInputService.WindowFocused:Connect(UpdateFOVCircle)
+UserInputService.WindowFocusReleased:Connect(UpdateFOVCircle)
+
+-- Limpiar
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    if player == LocalPlayer then
+        FOVCircle:Remove()
+    end
+end)
+
+return ScreenGui
