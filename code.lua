@@ -749,6 +749,10 @@ end
 -- Aimbot function
 local AimbotEnabled = false
 local AimbotTarget = nil
+local AimbotSensitivity = 0.5
+local AimbotSmoothing = 0.2
+local AimbotFOV = 400
+local AimbotActivationKey = Enum.KeyCode.E
 
 local function IsPlayerVisible(player)
     if player.Character and player.Character:FindFirstChild("Head") then
@@ -769,20 +773,22 @@ end
 local function GetClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
-    local maxDistance = 1000 -- Distancia máxima para el aimbot
+    local maxDistance = AimbotFOV
 
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and 
            player.Character and 
            player.Character:FindFirstChild("HumanoidRootPart") and
            player.Character:FindFirstChild("Humanoid") and
-           player.Character.Humanoid.Health > 0 and
-           IsPlayerVisible(player) then
+           player.Character.Humanoid.Health > 0 then
             
-            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance and distance < maxDistance then
-                closestPlayer = player
-                shortestDistance = distance
+            local screenPos, onScreen = Camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local distanceFromCenter = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)).Magnitude
+                if distanceFromCenter < maxDistance and IsPlayerVisible(player) then
+                    closestPlayer = player
+                    maxDistance = distanceFromCenter
+                end
             end
         end
     end
@@ -790,42 +796,42 @@ local function GetClosestPlayer()
     return closestPlayer
 end
 
+local function PredictTargetPosition(target)
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        local targetVelocity = target.Character.HumanoidRootPart.Velocity
+        local targetPosition = target.Character.HumanoidRootPart.Position
+        local timeToHit = (targetPosition - Camera.CFrame.Position).Magnitude / 1000 -- Assuming projectile speed of 1000
+        return targetPosition + targetVelocity * timeToHit
+    end
+    return nil
+end
+
 local function AimAt(target)
     if target and target.Character and target.Character:FindFirstChild("Head") then
-        local targetPos = target.Character.Head.Position
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+        local predictedPos = PredictTargetPosition(target)
+        if predictedPos then
+            local targetPos = Camera:WorldToScreenPoint(predictedPos)
+            local mousePos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+            local aimDelta = Vector2.new(targetPos.X - mousePos.X, targetPos.Y - mousePos.Y)
+            aimDelta = aimDelta * AimbotSensitivity
+            mousemoverel(aimDelta.X * AimbotSmoothing, aimDelta.Y * AimbotSmoothing)
+        end
     end
 end
 
 local function ToggleAimbot(enabled)
     AimbotEnabled = enabled
     if enabled then
-        -- Crear el crosshair con el nuevo estilo
-        AimbotCrosshair = Drawing.new("Circle")
-        AimbotCrosshair.Visible = true
-        AimbotCrosshair.Radius = 15 -- Radio más grande
-        AimbotCrosshair.Color = Color3.new(1, 1, 1) -- Color blanco
-        AimbotCrosshair.Thickness = 1.5 -- Línea más gruesa
-        AimbotCrosshair.Filled = false -- Sin relleno
-        AimbotCrosshair.Transparency = 1 -- Totalmente visible
-        AimbotCrosshair.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-        AimbotCrosshair.NumSides = 60 -- Más lados para un círculo más suave
-
         RunService:BindToRenderStep("Aimbot", 100, function()
-            AimbotTarget = GetClosestPlayer()
-            if AimbotTarget and IsPlayerVisible(AimbotTarget) then
-                AimAt(AimbotTarget)
+            if UserInputService:IsKeyDown(AimbotActivationKey) then
+                AimbotTarget = GetClosestPlayer()
+                if AimbotTarget and IsPlayerVisible(AimbotTarget) then
+                    AimAt(AimbotTarget)
+                end
             end
-            -- Actualizar posición del crosshair
-            AimbotCrosshair.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
         end)
     else
         RunService:UnbindFromRenderStep("Aimbot")
-        -- Remover el crosshair
-        if AimbotCrosshair then
-            AimbotCrosshair:Remove()
-            AimbotCrosshair = nil
-        end
     end
 end
 
