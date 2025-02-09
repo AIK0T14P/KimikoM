@@ -750,14 +750,37 @@ end
 local AimbotEnabled = false
 local AimbotTarget = nil
 
+local function IsPlayerVisible(player)
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local ray = Ray.new(
+            Camera.CFrame.Position,
+            (player.Character.Head.Position - Camera.CFrame.Position).Unit * 1000
+        )
+        local ignoreList = {LocalPlayer.Character, Camera}
+        local hit, position = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList)
+        
+        if hit and hit:IsDescendantOf(player.Character) then
+            return true
+        end
+    end
+    return false
+end
+
 local function GetClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
+    local maxDistance = 1000 -- Distancia máxima para el aimbot
 
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if player ~= LocalPlayer and 
+           player.Character and 
+           player.Character:FindFirstChild("HumanoidRootPart") and
+           player.Character:FindFirstChild("Humanoid") and
+           player.Character.Humanoid.Health > 0 and
+           IsPlayerVisible(player) then
+            
             local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance then
+            if distance < shortestDistance and distance < maxDistance then
                 closestPlayer = player
                 shortestDistance = distance
             end
@@ -777,14 +800,32 @@ end
 local function ToggleAimbot(enabled)
     AimbotEnabled = enabled
     if enabled then
+        -- Crear el crosshair con el nuevo estilo
+        AimbotCrosshair = Drawing.new("Circle")
+        AimbotCrosshair.Visible = true
+        AimbotCrosshair.Radius = 15 -- Radio más grande
+        AimbotCrosshair.Color = Color3.new(1, 1, 1) -- Color blanco
+        AimbotCrosshair.Thickness = 1.5 -- Línea más gruesa
+        AimbotCrosshair.Filled = false -- Sin relleno
+        AimbotCrosshair.Transparency = 1 -- Totalmente visible
+        AimbotCrosshair.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        AimbotCrosshair.NumSides = 60 -- Más lados para un círculo más suave
+
         RunService:BindToRenderStep("Aimbot", 100, function()
             AimbotTarget = GetClosestPlayer()
-            if AimbotTarget then
+            if AimbotTarget and IsPlayerVisible(AimbotTarget) then
                 AimAt(AimbotTarget)
             end
+            -- Actualizar posición del crosshair
+            AimbotCrosshair.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
         end)
     else
         RunService:UnbindFromRenderStep("Aimbot")
+        -- Remover el crosshair
+        if AimbotCrosshair then
+            AimbotCrosshair:Remove()
+            AimbotCrosshair = nil
+        end
     end
 end
 
